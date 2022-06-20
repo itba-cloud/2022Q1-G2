@@ -9,35 +9,35 @@ resource "aws_s3_bucket" "main" {
 }
 
 resource "aws_s3_bucket_policy" "main" {
-    bucket = aws_s3_bucket.main.id
-    policy = data.aws_iam_policy_document.this.json
+  bucket = aws_s3_bucket.main.id
+  policy = data.aws_iam_policy_document.this.json
 }
 
 resource "aws_s3_bucket_acl" "main" {
-    bucket = aws_s3_bucket.main.id
-    acl    = "private"
+  bucket = aws_s3_bucket.main.id
+  acl    = "private"
 }
 
 resource "aws_s3_object" "main" {
-    for_each =  fileset(var.export_path, "**")
+  for_each = fileset(var.export_path, "**")
 
-    bucket        = aws_s3_bucket.main.id
-    key           = each.value
-    source        = format("%s/%s", var.export_path, each.value)
-    content_type  = lookup(local.mime_types, regex("\\.[^.]+$", each.value), null)
-    storage_class = var.website_tier
+  bucket        = aws_s3_bucket.main.id
+  key           = each.value
+  source        = format("%s/%s", var.export_path, each.value)
+  content_type  = lookup(local.mime_types, regex("\\.[^.]+$", each.value), null)
+  storage_class = var.website_tier
 }
 
 resource "aws_s3_bucket_website_configuration" "main" {
   bucket = aws_s3_bucket.main.bucket
 
   index_document {
-      suffix = "index.html"
-    }
+    suffix = "index.html"
+  }
 
-    error_document {
-      key = "error.html"
-    }
+  error_document {
+    key = "error.html"
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -49,16 +49,16 @@ resource "aws_s3_bucket" "www" {
 }
 
 resource "aws_s3_bucket_acl" "www" {
-    bucket = aws_s3_bucket.www.id
-    acl    = "private"
+  bucket = aws_s3_bucket.www.id
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_website_configuration" "www" {
   bucket = aws_s3_bucket.www.bucket
 
   redirect_all_requests_to {
-      host_name = aws_s3_bucket.main.website_endpoint
-    }
+    host_name = aws_s3_bucket.main.website_endpoint
+  }
 
   depends_on = [aws_s3_bucket.main]
 }
@@ -81,5 +81,5 @@ resource "aws_s3_bucket_logging" "log" {
 
   target_bucket = aws_s3_bucket.log.id
   target_prefix = "log/"
-  depends_on = [aws_s3_bucket.main]
+  depends_on    = [aws_s3_bucket.main]
 }
