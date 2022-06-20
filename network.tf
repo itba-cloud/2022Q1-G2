@@ -10,7 +10,7 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public" {
   vpc_id = aws_vpc.main.id
 
-  for_each = toset(var.aws_availability_zones)
+  for_each          = toset(var.aws_availability_zones)
   availability_zone = each.value
 
   cidr_block = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10)
@@ -23,12 +23,12 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "lambda" {
-  vpc_id            = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-  for_each = toset(var.aws_availability_zones)
+  for_each          = toset(var.aws_availability_zones)
   availability_zone = each.value
 
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10 + 1)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10 + 1)
   map_public_ip_on_launch = false
 
   tags = {
@@ -37,12 +37,12 @@ resource "aws_subnet" "lambda" {
 }
 
 resource "aws_subnet" "aurora" {
-  vpc_id            = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-  for_each = toset(var.aws_availability_zones)
+  for_each          = toset(var.aws_availability_zones)
   availability_zone = each.value
 
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10 + 2)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10 + 2)
   map_public_ip_on_launch = false
 
   tags = {
@@ -71,7 +71,7 @@ resource "aws_nat_gateway" "ngw" {
 
   subnet_id     = aws_subnet.public[each.value].id
   allocation_id = aws_eip.nat[each.value].id
-  depends_on = [aws_internet_gateway.igw]
+  depends_on    = [aws_internet_gateway.igw]
 }
 
 # ---------------------------------------------------------------------------

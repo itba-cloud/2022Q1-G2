@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 
 resource "aws_api_gateway_rest_api" "this" {
-  name        = "aws_api_gateway"
+  name = "aws_api_gateway"
 }
 
 resource "aws_api_gateway_resource" "this" {

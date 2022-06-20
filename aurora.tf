@@ -14,7 +14,7 @@ resource "aws_rds_cluster" "aurora" {
 
   db_subnet_group_name = aws_db_subnet_group.this.name
 
-  skip_final_snapshot     = true
+  skip_final_snapshot = true
 
   scaling_configuration {
     auto_pause               = true
@@ -26,6 +26,6 @@ resource "aws_rds_cluster" "aurora" {
 }
 
 resource "aws_db_subnet_group" "this" {
-  name = "aurora-subnet-group"
+  name       = "aurora-subnet-group"
   subnet_ids = [for o in aws_subnet.aurora : o.id]
 }

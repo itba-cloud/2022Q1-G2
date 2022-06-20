@@ -39,9 +39,9 @@ locals {
 
   cloudfront = {
     lambda_edge = {
-      filename = "${local.resource_path}/lambda_edge/rewrite_uri.zip"
+      filename      = "${local.resource_path}/lambda_edge/rewrite_uri.zip"
       function_name = "LambdaEdge-RewriteUri"
-      handler = "rewrite_uri.handler"
+      handler       = "rewrite_uri.handler"
     }
   }
 }

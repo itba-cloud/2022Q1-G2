@@ -27,10 +27,10 @@ resource "aws_lambda_function" "this" {
   environment {
     variables = {
       DB_ENDPOINT = aws_rds_cluster.aurora.endpoint
-      DB_PORT = aws_rds_cluster.aurora.port
-      DB_NAME = aws_rds_cluster.aurora.database_name
-      DB_USER = aws_rds_cluster.aurora.master_username
-      DB_PASS = aws_rds_cluster.aurora.master_password
+      DB_PORT     = aws_rds_cluster.aurora.port
+      DB_NAME     = aws_rds_cluster.aurora.database_name
+      DB_USER     = aws_rds_cluster.aurora.master_username
+      DB_PASS     = aws_rds_cluster.aurora.master_password
     }
   }
 

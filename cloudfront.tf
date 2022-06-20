@@ -1,7 +1,7 @@
 locals {
-  s3_user_origin_id = "s3_user"
+  s3_user_origin_id  = "s3_user"
   s3_stock_origin_id = "s3_stock"
-  api_origin_id = "apigw"
+  api_origin_id      = "apigw"
 }
 
 resource "aws_cloudfront_origin_access_identity" "user" {
@@ -34,20 +34,20 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 
   origin {
-    domain_name =  "${aws_api_gateway_rest_api.this.id}.execute-api.${var.aws_region}.amazonaws.com"
+    domain_name = "${aws_api_gateway_rest_api.this.id}.execute-api.${var.aws_region}.amazonaws.com"
     origin_id   = local.api_origin_id
 
-        custom_origin_config {
-			http_port              = 80
-			https_port             = 443
-			origin_protocol_policy = "https-only"
-			origin_ssl_protocols   = ["TLSv1","TLSv1.1"]
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1", "TLSv1.1"]
     }
 
     # Use S3OriginConfig to specify an Amazon S3 bucket that is not configured with static website hosting.
-#    s3_origin_config {
-#      origin_access_identity = "origin-access-identity/cloudfront/ABCDEFG1234567"
-#    }
+    #    s3_origin_config {
+    #      origin_access_identity = "origin-access-identity/cloudfront/ABCDEFG1234567"
+    #    }
   }
 
   enabled             = true
@@ -55,15 +55,15 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   comment             = "Vending Machine main cloudfront"
   default_root_object = "index.html"
 
-# The logging configuration that controls how logs are written to your distribution (maximum one).
-#  logging_config {
-#    include_cookies = false
-#    bucket          = "mylogs.s3.amazonaws.com"
-#    prefix          = "myprefix"
-#  }
+  # The logging configuration that controls how logs are written to your distribution (maximum one).
+  #  logging_config {
+  #    include_cookies = false
+  #    bucket          = "mylogs.s3.amazonaws.com"
+  #    prefix          = "myprefix"
+  #  }
 
-## Extra CNAMEs (alternate domain names), if any, for this distribution.
-#  aliases = ["vending.coke.com"]
+  ## Extra CNAMEs (alternate domain names), if any, for this distribution.
+  #  aliases = ["vending.coke.com"]
 
 
   default_cache_behavior {
@@ -106,25 +106,25 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     viewer_protocol_policy = "redirect-to-https"
   }
 
-    ordered_cache_behavior {
+  ordered_cache_behavior {
     path_pattern     = "stock/*"
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
     target_origin_id = local.s3_stock_origin_id
 
-#      lambda_function_association { TODO: No se puede usar, ya que el lab no permite crear manejar Roles
-#        event_type   = "origin-request"
-#        lambda_arn = "${aws_lambda_function.lambda_edge.arn}:${aws_lambda_function.lambda_edge.version}"
-#        include_body = false
-#      }
+    #      lambda_function_association { TODO: No se puede usar, ya que el lab no permite crear manejar Roles
+    #        event_type   = "origin-request"
+    #        lambda_arn = "${aws_lambda_function.lambda_edge.arn}:${aws_lambda_function.lambda_edge.version}"
+    #        include_body = false
+    #      }
 
-      forwarded_values {
-        query_string = false
+    forwarded_values {
+      query_string = false
 
-        cookies {
-          forward = "none"
-        }
+      cookies {
+        forward = "none"
       }
+    }
 
     min_ttl                = 0
     default_ttl            = 86400
