@@ -15,7 +15,7 @@ resource "aws_s3_bucket_policy" "main" {
 
 resource "aws_s3_bucket_acl" "main" {
   bucket = aws_s3_bucket.main.id
-  acl    = "private"
+  acl    = "public-read"
 }
 
 resource "aws_s3_object" "main" {
@@ -50,7 +50,7 @@ resource "aws_s3_bucket" "www" {
 
 resource "aws_s3_bucket_acl" "www" {
   bucket = aws_s3_bucket.www.id
-  acl    = "private"
+  acl    = "public-read"
 }
 
 resource "aws_s3_bucket_website_configuration" "www" {
