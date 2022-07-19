@@ -4,12 +4,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "aws_availability_zones" {
-  description = "List of AWS Availability Zones to be hosted on."
-  type        = list(string)
-  default     = ["us-east-1a", "us-east-1b", "us-east-1f"]
-}
-
 variable "vpc_cidr" {
   description = "CIDR for the VPC"
   type        = string
@@ -19,19 +13,20 @@ variable "vpc_cidr" {
 variable "db_name" {
   description = "DB Name"
   type        = string
+  sensitive   = true
   default     = "productsdb"
 }
 
 variable "db_username" {
   description = "DB Username"
   type        = string
-  default     = "root"
+  sensitive   = true
 }
 
 variable "db_password" {
   description = "DB Password"
   type        = string
-  default     = "12345678"
+  sensitive   = true
 }
 
 variable "domain_name" {

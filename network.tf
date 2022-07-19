@@ -10,10 +10,10 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public" {
   vpc_id = aws_vpc.main.id
 
-  for_each          = toset(var.aws_availability_zones)
+  for_each          = toset(data.aws_availability_zones.available.names)
   availability_zone = each.value
 
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10)
+  cidr_block = cidrsubnet(var.vpc_cidr, 8, index(data.aws_availability_zones.available.names, each.value) * 10)
 
   map_public_ip_on_launch = true
 
@@ -25,10 +25,10 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private_app" {
   vpc_id = aws_vpc.main.id
 
-  for_each          = toset(var.aws_availability_zones)
+  for_each          = toset(data.aws_availability_zones.available.names)
   availability_zone = each.value
 
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10 + 1)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(data.aws_availability_zones.available.names, each.value) * 10 + 1)
   map_public_ip_on_launch = false
 
   tags = {
@@ -39,10 +39,10 @@ resource "aws_subnet" "private_app" {
 resource "aws_subnet" "private_db" {
   vpc_id = aws_vpc.main.id
 
-  for_each          = toset(var.aws_availability_zones)
+  for_each          = toset(data.aws_availability_zones.available.names)
   availability_zone = each.value
 
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10 + 2)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(data.aws_availability_zones.available.names, each.value) * 10 + 2)
   map_public_ip_on_launch = false
 
   tags = {
@@ -63,11 +63,11 @@ resource "aws_internet_gateway" "this" {
 }
 
 resource "aws_eip" "nat" {
-  for_each = toset(var.aws_availability_zones)
+  for_each = toset(data.aws_availability_zones.available.names)
 }
 
 resource "aws_nat_gateway" "this" {
-  for_each = toset(var.aws_availability_zones)
+  for_each = toset(data.aws_availability_zones.available.names)
 
   subnet_id     = aws_subnet.public[each.value].id
   allocation_id = aws_eip.nat[each.value].id
@@ -94,7 +94,7 @@ resource "aws_route_table" "public" {
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
-  for_each = toset(var.aws_availability_zones)
+  for_each = toset(data.aws_availability_zones.available.names)
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -114,14 +114,14 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_route_table_association" "private_app" {
-  for_each = toset(var.aws_availability_zones)
+  for_each = toset(data.aws_availability_zones.available.names)
 
   subnet_id      = aws_subnet.private_app[each.value].id
   route_table_id = aws_route_table.private[each.value].id
 }
 
 resource "aws_route_table_association" "private_aurora" {
-  for_each = toset(var.aws_availability_zones)
+  for_each = toset(data.aws_availability_zones.available.names)
 
   subnet_id      = aws_subnet.private_db[each.value].id
   route_table_id = aws_route_table.private[each.value].id
