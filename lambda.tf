@@ -36,6 +36,6 @@ resource "aws_lambda_function" "this" {
 
   vpc_config {
     security_group_ids = [aws_security_group.egress_all.id, aws_security_group.https.id]
-    subnet_ids         = [for o in aws_subnet.lambda : o.id]
+    subnet_ids         = [for o in aws_subnet.private_app : o.id]
   }
 }

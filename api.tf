@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 
 resource "aws_api_gateway_rest_api" "this" {
-  name = "aws_api_gateway"
+  name = "aws_api_gateway_lambdas"
 }
 
 resource "aws_api_gateway_resource" "this" {
@@ -33,11 +33,6 @@ resource "aws_api_gateway_integration" "this" {
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.this[each.key].invoke_arn
 }
-
-#resource "aws_api_gateway_rest_api_policy" "" {
-#  policy      = ""
-#  rest_api_id = ""
-#}
 
 resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.this.id

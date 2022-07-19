@@ -22,7 +22,7 @@ resource "aws_subnet" "public" {
   }
 }
 
-resource "aws_subnet" "lambda" {
+resource "aws_subnet" "private_app" {
   vpc_id = aws_vpc.main.id
 
   for_each          = toset(var.aws_availability_zones)
@@ -36,7 +36,7 @@ resource "aws_subnet" "lambda" {
   }
 }
 
-resource "aws_subnet" "aurora" {
+resource "aws_subnet" "private_db" {
   vpc_id = aws_vpc.main.id
 
   for_each          = toset(var.aws_availability_zones)
@@ -54,7 +54,7 @@ resource "aws_subnet" "aurora" {
 # Gateways
 # ---------------------------------------------------------------------------
 
-resource "aws_internet_gateway" "igw" {
+resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.main.id
 
   tags = {
@@ -66,12 +66,12 @@ resource "aws_eip" "nat" {
   for_each = toset(var.aws_availability_zones)
 }
 
-resource "aws_nat_gateway" "ngw" {
+resource "aws_nat_gateway" "this" {
   for_each = toset(var.aws_availability_zones)
 
   subnet_id     = aws_subnet.public[each.value].id
   allocation_id = aws_eip.nat[each.value].id
-  depends_on    = [aws_internet_gateway.igw]
+  depends_on    = [aws_internet_gateway.this]
 }
 
 # ---------------------------------------------------------------------------
@@ -83,7 +83,7 @@ resource "aws_route_table" "public" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+    gateway_id = aws_internet_gateway.this.id
   }
 
   tags = {
@@ -98,7 +98,7 @@ resource "aws_route_table" "private" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.ngw[each.value].id
+    gateway_id = aws_nat_gateway.this[each.value].id
   }
 
   tags = {
@@ -113,17 +113,17 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_route_table_association" "private_lambda" {
+resource "aws_route_table_association" "private_app" {
   for_each = toset(var.aws_availability_zones)
 
-  subnet_id      = aws_subnet.lambda[each.value].id
+  subnet_id      = aws_subnet.private_app[each.value].id
   route_table_id = aws_route_table.private[each.value].id
 }
 
 resource "aws_route_table_association" "private_aurora" {
   for_each = toset(var.aws_availability_zones)
 
-  subnet_id      = aws_subnet.aurora[each.value].id
+  subnet_id      = aws_subnet.private_db[each.value].id
   route_table_id = aws_route_table.private[each.value].id
 }
 
