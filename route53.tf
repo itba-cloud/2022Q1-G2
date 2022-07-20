@@ -1,8 +1,11 @@
 resource "aws_route53_zone" "main" {
+  provider = aws
   name = var.domain_name
 }
 
 resource "aws_route53_record" "root_domain" {
+  provider = aws
+
   zone_id = aws_route53_zone.main.zone_id
   name    = var.domain_name
   type    = "A"

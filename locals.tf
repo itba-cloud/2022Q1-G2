@@ -1,4 +1,7 @@
 locals {
+
+  availability_zone_names = slice(data.aws_availability_zones.available.names, 0, var.availability_zones_count)
+
   resource_path = "./resources"
 
   lambda = {
@@ -6,20 +9,33 @@ locals {
     runtime = "python3.9"
 
     functions = {
-      testDB = {
-        filename      = "db_test.zip"
-        handler       = "db_test.main_handler"
-        api_call      = "dbtest"
+      getProducts = {
+        filename      = "buyProduct.zip"
+        handler       = "buyProduct.handler"
+        api_call      = "buyProduct"
+        method        = "GET"
+        authorization = "NONE"
+      },
+      buyProduct = {
+        filename      = "getProducts.zip"
+        handler       = "getProducts.handler"
+        api_call      = "getProducts"
+        method        = "GET"
+        authorization = "NONE"
+      },
+      modifyStock = {
+        filename      = "modifyStock.zip"
+        handler       = "modifyStock.handler"
+        api_call      = "modifyStock"
         method        = "GET"
         authorization = "NONE"
       }
     }
-
   }
 
   s3 = {
     main_website = {
-      bucket_name = "cloud-vending-machine"
+      bucket_name = "cloud-vending-machine-123"
       tier        = "STANDARD"
       path        = "./resources/main_website"
 
@@ -28,7 +44,7 @@ locals {
     }
 
     stock_website = {
-      bucket_name = "cloud-vending-machine-stock"
+      bucket_name = "cloud-vending-machine-stock-123"
       tier        = "STANDARD"
       path        = "./resources/stock_website"
 

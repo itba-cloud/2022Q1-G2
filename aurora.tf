@@ -3,6 +3,8 @@
 # ---------------------------------------------------------------------------
 
 resource "aws_rds_cluster" "aurora" {
+  provider = aws
+
   cluster_identifier      = "aurora-product-db"
   engine                  = "aurora-postgresql"
   engine_mode             = "serverless"

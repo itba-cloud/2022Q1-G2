@@ -1,7 +1,13 @@
 variable "aws_region" {
   description = "AWS Region to be hosted on."
-  type        = string
-  default     = "us-east-1"
+  type = string
+  default = "us-east-1"
+}
+
+variable "availability_zones_count" {
+  description = "Amount of availability zones to deploy to"
+  type = number
+  default = 3
 }
 
 variable "vpc_cidr" {

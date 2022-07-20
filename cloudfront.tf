@@ -5,14 +5,17 @@ locals {
 }
 
 resource "aws_cloudfront_origin_access_identity" "user" {
+  provider = aws
   comment = "cloud-vending-machine"
 }
 
 resource "aws_cloudfront_origin_access_identity" "stock" {
+  provider = aws
   comment = "cloud-vending-machine"
 }
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
+  provider = aws
 
   # An origin is the location where content is stored, and from which CloudFront gets content to serve to viewers.
   origin {
