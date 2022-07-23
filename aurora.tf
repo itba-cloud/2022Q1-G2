@@ -3,6 +3,8 @@
 # ---------------------------------------------------------------------------
 
 resource "aws_rds_cluster" "aurora" {
+  provider = aws
+
   cluster_identifier      = "aurora-product-db"
   engine                  = "aurora-postgresql"
   engine_mode             = "serverless"
@@ -27,5 +29,5 @@ resource "aws_rds_cluster" "aurora" {
 
 resource "aws_db_subnet_group" "this" {
   name       = "aurora-subnet-group"
-  subnet_ids = [for o in aws_subnet.aurora : o.id]
+  subnet_ids = [for o in aws_subnet.private_db : o.id]
 }

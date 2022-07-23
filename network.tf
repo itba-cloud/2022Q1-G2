@@ -1,4 +1,6 @@
 resource "aws_vpc" "main" {
+  provider = aws
+
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
 }
@@ -8,12 +10,14 @@ resource "aws_vpc" "main" {
 # ---------------------------------------------------------------------------
 
 resource "aws_subnet" "public" {
+  provider = aws
+
   vpc_id = aws_vpc.main.id
 
-  for_each          = toset(var.aws_availability_zones)
+  for_each          = toset(local.availability_zone_names)
   availability_zone = each.value
 
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10)
+  cidr_block = cidrsubnet(var.vpc_cidr, 8, index(local.availability_zone_names, each.value) * 10)
 
   map_public_ip_on_launch = true
 
@@ -22,31 +26,35 @@ resource "aws_subnet" "public" {
   }
 }
 
-resource "aws_subnet" "lambda" {
+resource "aws_subnet" "private_app" {
+  provider = aws
+
   vpc_id = aws_vpc.main.id
 
-  for_each          = toset(var.aws_availability_zones)
+  for_each          = toset(local.availability_zone_names)
   availability_zone = each.value
 
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10 + 1)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(local.availability_zone_names, each.value) * 10 + 1)
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "lambda_private_subnet-${each.value}"
+    Name = "app_private_subnet-${each.value}"
   }
 }
 
-resource "aws_subnet" "aurora" {
+resource "aws_subnet" "private_db" {
+  provider = aws
+
   vpc_id = aws_vpc.main.id
 
-  for_each          = toset(var.aws_availability_zones)
+  for_each          = toset(local.availability_zone_names)
   availability_zone = each.value
 
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(var.aws_availability_zones, each.value) * 10 + 2)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, index(local.availability_zone_names, each.value) * 10 + 2)
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "aurora_private_subnet-${each.value}"
+    Name = "db_private_subnet-${each.value}"
   }
 }
 
@@ -54,7 +62,9 @@ resource "aws_subnet" "aurora" {
 # Gateways
 # ---------------------------------------------------------------------------
 
-resource "aws_internet_gateway" "igw" {
+resource "aws_internet_gateway" "this" {
+  provider = aws
+
   vpc_id = aws_vpc.main.id
 
   tags = {
@@ -63,15 +73,17 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_eip" "nat" {
-  for_each = toset(var.aws_availability_zones)
+  provider = aws
+  for_each = toset(local.availability_zone_names)
 }
 
-resource "aws_nat_gateway" "ngw" {
-  for_each = toset(var.aws_availability_zones)
+resource "aws_nat_gateway" "this" {
+  provider = aws
+  for_each = toset(local.availability_zone_names)
 
   subnet_id     = aws_subnet.public[each.value].id
   allocation_id = aws_eip.nat[each.value].id
-  depends_on    = [aws_internet_gateway.igw]
+  depends_on    = [aws_internet_gateway.this]
 }
 
 # ---------------------------------------------------------------------------
@@ -79,11 +91,12 @@ resource "aws_nat_gateway" "ngw" {
 # ---------------------------------------------------------------------------
 
 resource "aws_route_table" "public" {
+  provider = aws
   vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+    gateway_id = aws_internet_gateway.this.id
   }
 
   tags = {
@@ -92,13 +105,14 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table" "private" {
+  provider = aws
   vpc_id = aws_vpc.main.id
 
-  for_each = toset(var.aws_availability_zones)
+  for_each = toset(local.availability_zone_names)
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.ngw[each.value].id
+    gateway_id = aws_nat_gateway.this[each.value].id
   }
 
   tags = {
@@ -107,23 +121,26 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "public" {
+  provider = aws
   for_each = aws_subnet.public
 
   subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_route_table_association" "private_lambda" {
-  for_each = toset(var.aws_availability_zones)
+resource "aws_route_table_association" "private_app" {
+  provider = aws
+  for_each = toset(local.availability_zone_names)
 
-  subnet_id      = aws_subnet.lambda[each.value].id
+  subnet_id      = aws_subnet.private_app[each.value].id
   route_table_id = aws_route_table.private[each.value].id
 }
 
 resource "aws_route_table_association" "private_aurora" {
-  for_each = toset(var.aws_availability_zones)
+  provider = aws
+  for_each = toset(local.availability_zone_names)
 
-  subnet_id      = aws_subnet.aurora[each.value].id
+  subnet_id      = aws_subnet.private_db[each.value].id
   route_table_id = aws_route_table.private[each.value].id
 }
 
@@ -131,6 +148,8 @@ resource "aws_route_table_association" "private_aurora" {
 # Security Groups
 # ---------------------------------------------------------------------------
 resource "aws_security_group" "http" {
+  provider = aws
+
   name        = "http"
   description = "HTTP traffic"
   vpc_id      = aws_vpc.main.id
@@ -143,6 +162,8 @@ resource "aws_security_group" "http" {
 }
 
 resource "aws_security_group" "https" {
+  provider = aws
+
   name        = "https"
   description = "HTTPS traffic"
   vpc_id      = aws_vpc.main.id
@@ -155,6 +176,8 @@ resource "aws_security_group" "https" {
 }
 
 resource "aws_security_group" "egress_all" {
+  provider = aws
+
   name        = "egress-all"
   description = "Allow all outbound traffic"
   vpc_id      = aws_vpc.main.id
